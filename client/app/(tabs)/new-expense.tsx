@@ -6,10 +6,10 @@ import {
   View,
   Pressable,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
-import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { ExpenseContext } from "@/contexts/ExpenseContext";
 
 export default function NewExpense({ navigation }: any) {
@@ -17,7 +17,6 @@ export default function NewExpense({ navigation }: any) {
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -69,14 +68,38 @@ export default function NewExpense({ navigation }: any) {
     }
   };
 
-  const showDatepicker = () => {
-    setShowDatePicker(true);
-  };
-
-  const onChangeDate = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    const currentDate = selectedDate || date;
-    setShowDatePicker(false);
-    setDate(currentDate);
+  const openDatePrompt = () => {
+    Alert.prompt?.(
+      "Tarih Seç",
+      "Lütfen tarihi gg.aa.yyyy formatında girin:",
+      [
+        {
+          text: "İptal",
+          style: "cancel",
+        },
+        {
+          text: "Tamam",
+          onPress: (input) => {
+            const parts = input?.split(".");
+            if (parts?.length === 3) {
+              const day = parseInt(parts[0]);
+              const month = parseInt(parts[1]) - 1;
+              const year = parseInt(parts[2]);
+              const newDate = new Date(year, month, day);
+              if (!isNaN(newDate.getTime())) {
+                setDate(newDate);
+              } else {
+                alert("Geçerli bir tarih girin.");
+              }
+            } else {
+              alert("Tarihi gg.aa.yyyy formatında girin.");
+            }
+          },
+        },
+      ],
+      "plain-text",
+      date.toLocaleDateString("tr-TR")
+    );
   };
 
   return (
@@ -99,19 +122,9 @@ export default function NewExpense({ navigation }: any) {
         onChangeText={setCategory}
       />
 
-      <Pressable style={styles.dateButton} onPress={showDatepicker}>
-        <Text style={styles.dateButtonText}>{date.toLocaleDateString("tr-TR")}</Text>
+      <Pressable style={styles.dateButton} onPress={openDatePrompt}>
+        <Text style={styles.dateButtonText}>📅 {date.toLocaleDateString("tr-TR")}</Text>
       </Pressable>
-
-      {showDatePicker && (
-        <DateTimePicker
-          value={date}
-          mode="date"
-          display="default"
-          onChange={onChangeDate}
-          locale="tr-TR"
-        />
-      )}
 
       {loading ? (
         <View style={styles.loaderContainer}>
@@ -157,8 +170,8 @@ const styles = StyleSheet.create({
   },
   dateButton: {
     backgroundColor: "#007bff",
-    padding: 8,
-    borderRadius: 14,
+    padding: 10,
+    borderRadius: 10,
     alignItems: "center",
     marginBottom: 15,
   },
@@ -170,7 +183,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#28a745",
     padding: 12,
     borderRadius: 10,
-    margin:5,
+    margin: 5,
     alignItems: "center",
     alignSelf: "center",
   },

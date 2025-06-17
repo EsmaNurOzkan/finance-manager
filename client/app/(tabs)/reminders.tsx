@@ -4,7 +4,6 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface Reminder {
   _id: string;
@@ -17,16 +16,16 @@ export default function Reminders() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [selectedReminder, setSelectedReminder] = useState<Reminder | null>(null);
-  const [newTitle, setNewTitle] = useState('');
-  const [newDescription, setNewDescription] = useState('');
-  const [newDueDate, setNewDueDate] = useState<Date | undefined>(undefined);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [addModalVisible, setAddModalVisible] = useState<boolean>(false);
-  const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
+
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [selectedReminder, setSelectedReminder] = useState<Reminder | null>(null);
+
+  const [newTitle, setNewTitle] = useState('');
+  const [newDescription, setNewDescription] = useState('');
+  const [newDueDate, setNewDueDate] = useState(''); // string olarak tarih
 
   const SERVER_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
   const navigation = useNavigation();
@@ -93,7 +92,7 @@ export default function Reminders() {
       const updatedReminder = {
         title: newTitle || selectedReminder.title,
         description: newDescription || selectedReminder.description,
-        dueDate: newDueDate?.toISOString() || selectedReminder.dueDate,
+        dueDate: newDueDate || selectedReminder.dueDate,
       };
 
       const response = await axios.patch(
@@ -129,7 +128,7 @@ export default function Reminders() {
       const newReminder = {
         title: newTitle,
         description: newDescription,
-        dueDate: newDueDate?.toISOString(),
+        dueDate: newDueDate,
       };
   
       const response = await axios.post(
@@ -139,7 +138,10 @@ export default function Reminders() {
   
       setReminders((prevReminders) => [...prevReminders, response.data]);
       setAddModalVisible(false); 
-  
+      setNewTitle('');
+      setNewDescription('');
+      setNewDueDate('');
+
       setSuccessMessage('Hatırlatıcı başarıyla eklendi!');
       setTimeout(() => setSuccessMessage(null), 2000); 
     } catch (err) {
@@ -147,13 +149,6 @@ export default function Reminders() {
     } finally {
       setIsProcessing(false);
     }
-  };
-  
-
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    const currentDate = selectedDate || newDueDate;
-    setShowDatePicker(false);
-    setNewDueDate(currentDate);
   };
 
   if (loading) {
@@ -178,7 +173,12 @@ export default function Reminders() {
       <Text style={styles.title}>Anımsatıcılar</Text>
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => setAddModalVisible(true)}
+        onPress={() => {
+          setNewTitle('');
+          setNewDescription('');
+          setNewDueDate('');
+          setAddModalVisible(true);
+        }}
       >
         <Icon name="plus" size={24} color="green" />
       </TouchableOpacity>
@@ -221,7 +221,7 @@ export default function Reminders() {
                     setSelectedReminder(item);
                     setNewTitle(item.title);
                     setNewDescription(item.description);
-                    setNewDueDate(new Date(item.dueDate));
+                    setNewDueDate(item.dueDate);
                     setEditModalVisible(true);
                   }}
                   style={styles.icon}
@@ -240,36 +240,28 @@ export default function Reminders() {
       <Modal visible={addModalVisible} animationType="slide" transparent={true} onRequestClose={() => setAddModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text 
-              style={styles.modalTitle}>
-                Yeni anımsatıcı ekle
-            </Text>
+            <Text style={styles.modalTitle}>Yeni anımsatıcı ekle</Text>
             <TextInput
               style={styles.input}
               placeholder="Başlık"
               placeholderTextColor="#888"
+              value={newTitle}
               onChangeText={setNewTitle}
             />
             <TextInput
               style={styles.input}
               placeholder="Açıklama"
               placeholderTextColor="#888"
+              value={newDescription}
               onChangeText={setNewDescription}
             />
-            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-              <Text style={styles.datePickerText}>
-                {newDueDate ? newDueDate.toLocaleDateString() : 'Son Tarihi Seçin'}
-              </Text>
-            </TouchableOpacity>
-
-            {showDatePicker && (
-              <DateTimePicker
-                value={newDueDate || new Date()}
-                mode="date"
-                display="default"
-                onChange={handleDateChange}
-              />
-            )}
+            <TextInput
+              style={styles.input}
+              placeholder="Son Tarih (YYYY-MM-DD)"
+              placeholderTextColor="#888"
+              value={newDueDate}
+              onChangeText={setNewDueDate}
+            />
 
             <View style={styles.modalButtons}>
               <Button title="Ekle" color="#003300" onPress={handleAddReminder} />
@@ -296,20 +288,13 @@ export default function Reminders() {
               value={newDescription}
               onChangeText={setNewDescription}
             />
-            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-              <Text style={styles.datePickerText}>
-                {newDueDate ? newDueDate.toLocaleDateString() : 'Son Tarihi Seçin'}
-              </Text>
-            </TouchableOpacity>
-
-            {showDatePicker && (
-              <DateTimePicker
-                value={newDueDate || new Date()}
-                mode="date"
-                display="default"
-                onChange={handleDateChange}
-              />
-            )}
+            <TextInput
+              style={styles.input}
+              placeholder="Son Tarih (YYYY-MM-DD)"
+              placeholderTextColor="#888"
+              value={newDueDate}
+              onChangeText={setNewDueDate}
+            />
 
             <View style={styles.modalButtons}>
               <Button title="Güncelle" color="#003300" onPress={handleUpdateReminder} />
@@ -418,7 +403,6 @@ const styles = StyleSheet.create({
     justifyContent:"center",
     alignItems:"center",
     textAlign:"center"
-
   },
   input: {
     borderBottomWidth: 1,
@@ -426,11 +410,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingHorizontal: 10,
     paddingVertical: 5,
-  },
-  datePickerText: {
-    fontSize: 16,
-    color: 'darkblue',
-    marginBottom: 15,
   },
   modalButtons: {
     flexDirection: 'row',

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { View, Button, TextInput, Text, StyleSheet, Platform, ActivityIndicator } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { View, Button, TextInput, Text, StyleSheet, ActivityIndicator } from 'react-native';
 
 interface UpdateBudgetProps {
   userId: string;
@@ -10,18 +9,27 @@ interface UpdateBudgetProps {
 }
 
 const UpdateBudget: React.FC<UpdateBudgetProps> = ({ userId, budgetId, onSuccess }) => {
-  const [startDate, setStartDate] = useState<Date | null>(new Date());
-  const [endDate, setEndDate] = useState<Date | null>(new Date());
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [showStartPicker, setShowStartPicker] = useState(false);
-  const [showEndPicker, setShowEndPicker] = useState(false);
+
+  const isValidDate = (dateStr: string) => {
+    return /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
+  };
 
   const handleUpdateBudget = async () => {
     if (!startDate || !endDate || !amount) {
       setErrorMessage('Lütfen tüm alanları doldurun.');
+      setSuccessMessage(null);
+      return;
+    }
+
+    if (!isValidDate(startDate) || !isValidDate(endDate)) {
+      setErrorMessage('Lütfen tarihleri YYYY-AA-GG formatında girin.');
+      setSuccessMessage(null);
       return;
     }
 
@@ -31,8 +39,8 @@ const UpdateBudget: React.FC<UpdateBudgetProps> = ({ userId, budgetId, onSuccess
 
     try {
       await axios.patch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/budgets/update/${userId}/${budgetId}`, {
-        startDate: startDate.toISOString().split('T')[0],
-        endDate: endDate.toISOString().split('T')[0],
+        startDate,
+        endDate,
         amount: Number(amount),
       });
       setSuccessMessage('Bütçe başarıyla güncellendi!');
@@ -47,35 +55,25 @@ const UpdateBudget: React.FC<UpdateBudgetProps> = ({ userId, budgetId, onSuccess
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Başlangıç Tarihi</Text>
-      <Button title="Tarih Seç" onPress={() => setShowStartPicker(true)} />
-      {showStartPicker && (
-        <DateTimePicker
-          value={startDate || new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(event, selectedDate) => {
-            setShowStartPicker(false);
-            if (selectedDate) setStartDate(selectedDate);
-          }}
-        />
-      )}
-      <Text style={styles.dateText}>{startDate?.toISOString().split('T')[0]}</Text>
+      <Text style={styles.label}>Başlangıç Tarihi (YYYY-AA-GG)</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="2025-06-17"
+        value={startDate}
+        onChangeText={setStartDate}
+        keyboardType="numbers-and-punctuation"
+        autoCapitalize="none"
+      />
 
-      <Text style={styles.label}>Bitiş Tarihi</Text>
-      <Button title="Tarih Seç" onPress={() => setShowEndPicker(true)} />
-      {showEndPicker && (
-        <DateTimePicker
-          value={endDate || new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(event, selectedDate) => {
-            setShowEndPicker(false);
-            if (selectedDate) setEndDate(selectedDate);
-          }}
-        />
-      )}
-      <Text style={styles.dateText}>{endDate?.toISOString().split('T')[0]}</Text>
+      <Text style={styles.label}>Bitiş Tarihi (YYYY-AA-GG)</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="2025-06-30"
+        value={endDate}
+        onChangeText={setEndDate}
+        keyboardType="numbers-and-punctuation"
+        autoCapitalize="none"
+      />
 
       <TextInput
         style={styles.input}
@@ -84,7 +82,9 @@ const UpdateBudget: React.FC<UpdateBudgetProps> = ({ userId, budgetId, onSuccess
         onChangeText={setAmount}
         keyboardType="numeric"
       />
+
       <Button title="Bütçeyi Güncelle" onPress={handleUpdateBudget} disabled={loading} />
+
       {loading && <ActivityIndicator size="small" color="#0000ff" style={styles.loader} />}
       {successMessage && <Text style={styles.successText}>{successMessage}</Text>}
       {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
@@ -103,10 +103,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginVertical: 5,
-  },
-  dateText: {
-    fontSize: 16,
-    marginVertical: 5,
+    color: 'white',
   },
   input: {
     borderColor: '#ccc',
@@ -115,12 +112,13 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginVertical: 10,
     fontSize: 16,
+    backgroundColor: 'white',
   },
   loader: {
     marginVertical: 10,
   },
   successText: {
-    color: 'green',
+    color: 'lightgreen',
     marginTop: 10,
     fontSize: 16,
   },

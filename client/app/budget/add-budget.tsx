@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { View, TextInput, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface AddBudgetProps {
   userId: string;
@@ -9,11 +8,15 @@ interface AddBudgetProps {
 }
 
 const AddBudget: React.FC<AddBudgetProps> = ({ userId, onSuccess }) => {
-  const [startDate, setStartDate] = useState<Date | null>(new Date());
-  const [endDate, setEndDate] = useState<Date | null>(new Date());
-  const [amount, setAmount] = useState<string>(''); 
-  const [showStartPicker, setShowStartPicker] = useState(false);
-  const [showEndPicker, setShowEndPicker] = useState(false);
+  const [startDate, setStartDate] = useState<string>(''); // artık string
+  const [endDate, setEndDate] = useState<string>('');     // artık string
+  const [amount, setAmount] = useState<string>('');
+
+  // Basit tarih formatı kontrolü: YYYY-MM-DD
+  const isValidDate = (dateStr: string) => {
+    // Regex ile YYYY-MM-DD formatında olup olmadığını kontrol eder
+    return /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
+  };
 
   const handleAddBudget = async () => {
     if (!startDate || !endDate || !amount) {
@@ -21,14 +24,21 @@ const AddBudget: React.FC<AddBudgetProps> = ({ userId, onSuccess }) => {
       return;
     }
 
+    if (!isValidDate(startDate) || !isValidDate(endDate)) {
+      Alert.alert('Hata', 'Lütfen tarihleri YYYY-AA-GG formatında girin.');
+      return;
+    }
+
     try {
       await axios.post(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/budgets/add/${userId}`, {
-        startDate: startDate.toISOString().split('T')[0],
-        endDate: endDate.toISOString().split('T')[0],
+        startDate,
+        endDate,
         amount: Number(amount),
       });
       Alert.alert('Başarılı', 'Bütçe başarıyla eklendi!');
       onSuccess?.(amount);
+      setStartDate('');
+      setEndDate('');
       setAmount('');
     } catch (error) {
       Alert.alert('Hata', 'Bütçe eklenirken bir hata oluştu.');
@@ -37,43 +47,25 @@ const AddBudget: React.FC<AddBudgetProps> = ({ userId, onSuccess }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Başlangıç Tarihi</Text>
-      <TouchableOpacity onPress={() => setShowStartPicker(true)} style={styles.datePickerButton}>
-        <Text style={styles.datePickerText}>
-          {startDate ? startDate.toLocaleDateString('tr-TR') : 'Tarih Seç'}
-        </Text>
-      </TouchableOpacity>
-      {showStartPicker && (
-        <DateTimePicker
-          value={startDate || new Date()}
-          mode="date"
-          display="default"
-          locale="tr-TR" 
-          onChange={(event, date) => {
-            setShowStartPicker(false);
-            if (date) setStartDate(date);
-          }}
-        />
-      )}
+      <Text style={styles.label}>Başlangıç Tarihi (YYYY-AA-GG)</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="2025-06-17"
+        placeholderTextColor="#888"
+        value={startDate}
+        onChangeText={setStartDate}
+        keyboardType="numbers-and-punctuation"
+      />
 
-      <Text style={styles.label}>Bitiş Tarihi</Text>
-      <TouchableOpacity onPress={() => setShowEndPicker(true)} style={styles.datePickerButton}>
-        <Text style={styles.datePickerText}>
-          {endDate ? endDate.toLocaleDateString('tr-TR') : 'Tarih Seç'}
-        </Text>
-      </TouchableOpacity>
-      {showEndPicker && (
-        <DateTimePicker
-          value={endDate || new Date()}
-          mode="date"
-          display="default"
-          locale="tr-TR" 
-          onChange={(event, date) => {
-            setShowEndPicker(false);
-            if (date) setEndDate(date);
-          }}
-        />
-      )}
+      <Text style={styles.label}>Bitiş Tarihi (YYYY-AA-GG)</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="2025-06-30"
+        placeholderTextColor="#888"
+        value={endDate}
+        onChangeText={setEndDate}
+        keyboardType="numbers-and-punctuation"
+      />
 
       <Text style={styles.label}>Bütçe Tutarı</Text>
       <TextInput
@@ -105,20 +97,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#444',
-  },
-  datePickerButton: {
-    backgroundColor: '#fff',
-    borderColor: '#007AFF',
-    borderWidth: 1,
-    padding: 14,
-    borderRadius: 12,
-    marginBottom: 20,
-    alignItems: 'center',
-    elevation: 3,
-  },
-  datePickerText: {
-    fontSize: 18,
-    color: '#007AFF',
   },
   input: {
     backgroundColor: '#fff',
