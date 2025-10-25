@@ -25,7 +25,7 @@ export default function Reminders() {
 
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
-  const [newDueDate, setNewDueDate] = useState(''); // string olarak tarih
+  const [newDueDate, setNewDueDate] = useState(''); // string format
 
   const SERVER_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
   const navigation = useNavigation();
@@ -35,7 +35,7 @@ export default function Reminders() {
       try {
         const userId = await SecureStore.getItemAsync('userId');
         if (!userId) {
-          setError('User ID bulunamadı.');
+          setError('User ID not found.');
           setLoading(false);
           return;
         }
@@ -43,7 +43,7 @@ export default function Reminders() {
         const response = await axios.get(`${SERVER_URL}/api/reminders/get/${userId}`);
         setReminders(response.data.reminders);
       } catch (err) {
-        setError('Hatırlatıcılar alınırken bir hata oluştu.');
+        setError('An error occurred while fetching reminders.');
       } finally {
         setLoading(false);
       }
@@ -54,12 +54,12 @@ export default function Reminders() {
 
   const handleDeleteReminder = (reminderId: string) => {
     Alert.alert(
-      "Silme İşlemi",
-      "Bu hatırlatıcıyı silmek istediğinizden emin misiniz?",
+      "Delete Confirmation",
+      "Are you sure you want to delete this reminder?",
       [
-        { text: "Hayır", style: "cancel" },
+        { text: "No", style: "cancel" },
         {
-          text: "Evet", onPress: async () => {
+          text: "Yes", onPress: async () => {
             try {
               setIsProcessing(true);
               const userId = await SecureStore.getItemAsync('userId');
@@ -68,10 +68,10 @@ export default function Reminders() {
               await axios.delete(`${SERVER_URL}/api/reminders/delete/${userId}/${reminderId}`);
               setReminders((prevReminders) => prevReminders.filter(r => r._id !== reminderId));
 
-              setSuccessMessage('Hatırlatıcı başarıyla silindi!');
+              setSuccessMessage('Reminder deleted successfully!');
               setTimeout(() => setSuccessMessage(null), 2000); 
             } catch (err) {
-              setError('Silme işlemi sırasında hata oluştu.');
+              setError('An error occurred while deleting the reminder.');
             } finally {
               setIsProcessing(false); 
             }
@@ -108,10 +108,10 @@ export default function Reminders() {
 
       setEditModalVisible(false);
 
-      setSuccessMessage('Hatırlatıcı başarıyla güncellendi!');
+      setSuccessMessage('Reminder updated successfully!');
       setTimeout(() => setSuccessMessage(null), 2000);
     } catch (err) {
-      setError('Güncelleme işlemi sırasında hata oluştu.');
+      setError('An error occurred while updating the reminder.');
     } finally {
       setIsProcessing(false); 
     }
@@ -142,10 +142,10 @@ export default function Reminders() {
       setNewDescription('');
       setNewDueDate('');
 
-      setSuccessMessage('Hatırlatıcı başarıyla eklendi!');
+      setSuccessMessage('Reminder added successfully!');
       setTimeout(() => setSuccessMessage(null), 2000); 
     } catch (err) {
-      setError('Yeni hatırlatıcı eklenirken hata oluştu.');
+      setError('An error occurred while adding the new reminder.');
     } finally {
       setIsProcessing(false);
     }
@@ -155,7 +155,7 @@ export default function Reminders() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
-        <Text>Yükleniyor...</Text>
+        <Text>Loading...</Text>
       </View>
     );
   }
@@ -170,7 +170,7 @@ export default function Reminders() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Anımsatıcılar</Text>
+      <Text style={styles.title}>Reminders</Text>
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => {
@@ -212,7 +212,7 @@ export default function Reminders() {
                 </Text>
                 <Text style={styles.reminderDescription}>{item.description}</Text>
                 <Text style={styles.reminderDueDate}>
-                  Son Tarih: {dueDate.toLocaleDateString()}
+                  Due Date: {dueDate.toLocaleDateString()}
                 </Text>
               </View>
               <View style={styles.iconsContainer}>
@@ -240,32 +240,32 @@ export default function Reminders() {
       <Modal visible={addModalVisible} animationType="slide" transparent={true} onRequestClose={() => setAddModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Yeni anımsatıcı ekle</Text>
+            <Text style={styles.modalTitle}>Add New Reminder</Text>
             <TextInput
               style={styles.input}
-              placeholder="Başlık"
+              placeholder="Title"
               placeholderTextColor="#888"
               value={newTitle}
               onChangeText={setNewTitle}
             />
             <TextInput
               style={styles.input}
-              placeholder="Açıklama"
+              placeholder="Description"
               placeholderTextColor="#888"
               value={newDescription}
               onChangeText={setNewDescription}
             />
             <TextInput
               style={styles.input}
-              placeholder="Son Tarih (YYYY-MM-DD)"
+              placeholder="Due Date (YYYY-MM-DD)"
               placeholderTextColor="#888"
               value={newDueDate}
               onChangeText={setNewDueDate}
             />
 
             <View style={styles.modalButtons}>
-              <Button title="Ekle" color="#003300" onPress={handleAddReminder} />
-              <Button title="Kapat" color="#4B0000" onPress={() => setAddModalVisible(false)} />
+              <Button title="Add" color="#003300" onPress={handleAddReminder} />
+              <Button title="Close" color="#4B0000" onPress={() => setAddModalVisible(false)} />
             </View>
           </View>
         </View>
@@ -276,29 +276,29 @@ export default function Reminders() {
           <View style={styles.modalContent}>
             <TextInput
               style={styles.input}
-              placeholder="Başlık"
+              placeholder="Title"
               placeholderTextColor="#888"
               value={newTitle}
               onChangeText={setNewTitle}
             />
             <TextInput
               style={styles.input}
-              placeholder="Açıklama"
+              placeholder="Description"
               placeholderTextColor="#888"
               value={newDescription}
               onChangeText={setNewDescription}
             />
             <TextInput
               style={styles.input}
-              placeholder="Son Tarih (YYYY-MM-DD)"
+              placeholder="Due Date (YYYY-MM-DD)"
               placeholderTextColor="#888"
               value={newDueDate}
               onChangeText={setNewDueDate}
             />
 
             <View style={styles.modalButtons}>
-              <Button title="Güncelle" color="#003300" onPress={handleUpdateReminder} />
-              <Button title="Kapat" color="#4B0000" onPress={() => setEditModalVisible(false)} />
+              <Button title="Update" color="#003300" onPress={handleUpdateReminder} />
+              <Button title="Close" color="#4B0000" onPress={() => setEditModalVisible(false)} />
             </View>
           </View>
         </View>
@@ -306,6 +306,8 @@ export default function Reminders() {
     </View>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   container: {

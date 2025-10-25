@@ -8,24 +8,24 @@ interface AddBudgetProps {
 }
 
 const AddBudget: React.FC<AddBudgetProps> = ({ userId, onSuccess }) => {
-  const [startDate, setStartDate] = useState<string>(''); // artık string
-  const [endDate, setEndDate] = useState<string>('');     // artık string
+  const [startDate, setStartDate] = useState<string>(''); // now string
+  const [endDate, setEndDate] = useState<string>('');     // now string
   const [amount, setAmount] = useState<string>('');
 
-  // Basit tarih formatı kontrolü: YYYY-MM-DD
+  // Simple date format check: YYYY-MM-DD
   const isValidDate = (dateStr: string) => {
-    // Regex ile YYYY-MM-DD formatında olup olmadığını kontrol eder
+    // Checks if the string matches YYYY-MM-DD format
     return /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
   };
 
   const handleAddBudget = async () => {
     if (!startDate || !endDate || !amount) {
-      Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
+      Alert.alert('Error', 'Please fill in all fields.');
       return;
     }
 
     if (!isValidDate(startDate) || !isValidDate(endDate)) {
-      Alert.alert('Hata', 'Lütfen tarihleri YYYY-AA-GG formatında girin.');
+      Alert.alert('Error', 'Please enter dates in YYYY-MM-DD format.');
       return;
     }
 
@@ -35,19 +35,19 @@ const AddBudget: React.FC<AddBudgetProps> = ({ userId, onSuccess }) => {
         endDate,
         amount: Number(amount),
       });
-      Alert.alert('Başarılı', 'Bütçe başarıyla eklendi!');
+      Alert.alert('Success', 'Budget added successfully!');
       onSuccess?.(amount);
       setStartDate('');
       setEndDate('');
       setAmount('');
     } catch (error) {
-      Alert.alert('Hata', 'Bütçe eklenirken bir hata oluştu.');
+      Alert.alert('Error', 'An error occurred while adding the budget.');
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Başlangıç Tarihi (YYYY-AA-GG)</Text>
+      <Text style={styles.label}>Start Date (YYYY-MM-DD)</Text>
       <TextInput
         style={styles.input}
         placeholder="2025-06-17"
@@ -57,7 +57,7 @@ const AddBudget: React.FC<AddBudgetProps> = ({ userId, onSuccess }) => {
         keyboardType="numbers-and-punctuation"
       />
 
-      <Text style={styles.label}>Bitiş Tarihi (YYYY-AA-GG)</Text>
+      <Text style={styles.label}>End Date (YYYY-MM-DD)</Text>
       <TextInput
         style={styles.input}
         placeholder="2025-06-30"
@@ -67,10 +67,10 @@ const AddBudget: React.FC<AddBudgetProps> = ({ userId, onSuccess }) => {
         keyboardType="numbers-and-punctuation"
       />
 
-      <Text style={styles.label}>Bütçe Tutarı</Text>
+      <Text style={styles.label}>Budget Amount</Text>
       <TextInput
         style={styles.input}
-        placeholder="Bütçe tutarını girin"
+        placeholder="Enter budget amount"
         placeholderTextColor="#888"
         value={amount}
         onChangeText={setAmount}
@@ -78,11 +78,12 @@ const AddBudget: React.FC<AddBudgetProps> = ({ userId, onSuccess }) => {
       />
 
       <TouchableOpacity style={styles.addButton} onPress={handleAddBudget}>
-        <Text style={styles.addButtonText}>Bütçe Ekle</Text>
+        <Text style={styles.addButtonText}>Add Budget</Text>
       </TouchableOpacity>
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

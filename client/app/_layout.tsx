@@ -31,15 +31,16 @@ export default function RootLayout() {
     <ExpenseProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "menü" }} />
-        <Stack.Screen name="auth/login" options={{ headerShown: true, title: "Giriş yap" }} />
-        <Stack.Screen name="auth/register" options={{ headerShown: true, title: "Kayıt ol" }} />
-        <Stack.Screen name="auth/reset-password" options={{ headerShown: true, title: "Parola sıfırla" }} />
-        <Stack.Screen name="+not-found" />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "Menu" }} />
+          <Stack.Screen name="auth/login" options={{ headerShown: true, title: "Login" }} />
+          <Stack.Screen name="auth/register" options={{ headerShown: true, title: "Register" }} />
+          <Stack.Screen name="auth/reset-password" options={{ headerShown: true, title: "Reset Password" }} />
+          <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
     </ExpenseProvider>
   );
+
 }
   

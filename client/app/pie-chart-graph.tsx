@@ -31,7 +31,7 @@ const PieChartGraph: React.FC<PieChartGraphProps> = ({ period, userId }) => {
         );
         setExpenses(response.data);
       } catch (err) {
-        setError('Harcamalar alınırken bir hata oluştu.');
+        setError('An error occurred while fetching expenses.');
       } finally {
         setLoading(false);
       }
@@ -43,13 +43,13 @@ const PieChartGraph: React.FC<PieChartGraphProps> = ({ period, userId }) => {
   const filteredExpenses = expenses.filter((expense) => {
     const today = new Date();
     const expenseDate = new Date(expense.date);
-    if (period === 'Günlük') {
+    if (period === 'Daily') {
       return expenseDate.toDateString() === today.toDateString();
-    } else if (period === 'Haftalık') {
+    } else if (period === 'Weekly') {
       const weekAgo = new Date();
       weekAgo.setDate(today.getDate() - 7);
       return expenseDate >= weekAgo && expenseDate <= today;
-    } else if (period === 'Aylık') {
+    } else if (period === 'Monthly') {
       return (
         expenseDate.getMonth() === today.getMonth() &&
         expenseDate.getFullYear() === today.getFullYear()
@@ -72,7 +72,7 @@ const PieChartGraph: React.FC<PieChartGraphProps> = ({ period, userId }) => {
   }));
 
   if (loading) {
-    return <Text style={styles.loadingText}>Yükleniyor...</Text>;
+    return <Text style={styles.loadingText}>Loading...</Text>;
   }
 
   if (error) {
@@ -102,11 +102,12 @@ const PieChartGraph: React.FC<PieChartGraphProps> = ({ period, userId }) => {
           center={[10, 10]}
         />
       ) : (
-        <Text style={styles.noDataText}>{period} için harcama bulunamadı.</Text>
+        <Text style={styles.noDataText}>No expenses found for {period}.</Text>
       )}
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

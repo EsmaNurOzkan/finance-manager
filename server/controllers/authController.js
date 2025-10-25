@@ -38,7 +38,7 @@ exports.sendResetLink = async (req, res) => {
       from: process.env.EMAIL_USER,
       to: user.email,
       subject: 'Password Reset Request',
-      text: `Şifre sıfırlama isteğinde bulundunuz. İşte sıfırlama kodunuz: ${resetCode}`,
+      text: `You requested a password reset. Here is your reset code: ${resetCode}`,
     };
 
     await transporter.sendMail(mailOptions);

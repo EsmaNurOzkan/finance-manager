@@ -28,7 +28,7 @@ const Reporting: React.FC<ReportingProps> = ({ period, userId }) => {
         const response = await axios.get(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/expenses/get/${userId}`);
         setExpenses(response.data);
       } catch (err) {
-        setError('Harcamalar alınırken bir hata oluştu.');
+        setError('An error occurred while fetching expenses.');
       } finally {
         setLoading(false);
       }
@@ -41,13 +41,13 @@ const Reporting: React.FC<ReportingProps> = ({ period, userId }) => {
     const today = new Date();
     const expenseDate = new Date(expense.date);
 
-    if (period === 'Günlük') {
+    if (period === 'Daily') {
       return expenseDate.toDateString() === today.toDateString();
-    } else if (period === 'Haftalık') {
+    } else if (period === 'Weekly') {
       const weekAgo = new Date();
       weekAgo.setDate(today.getDate() - 7);
       return expenseDate >= weekAgo && expenseDate <= today;
-    } else if (period === 'Aylık') {
+    } else if (period === 'Monthly') {
       return (
         expenseDate.getMonth() === today.getMonth() &&
         expenseDate.getFullYear() === today.getFullYear()
@@ -62,7 +62,7 @@ const Reporting: React.FC<ReportingProps> = ({ period, userId }) => {
   }, {} as Record<string, number>);
 
   if (loading) {
-    return <Text style={styles.loadingText}>Yükleniyor...</Text>;
+    return <Text style={styles.loadingText}>Loading...</Text>;
   }
 
   if (error) {
@@ -71,24 +71,25 @@ const Reporting: React.FC<ReportingProps> = ({ period, userId }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerText}>{period} Harcamalarınız</Text>
+      <Text style={styles.headerText}>{period} Expenses</Text>
       {Object.keys(groupedExpenses).length > 0 ? (
         Object.entries(groupedExpenses).map(([category, amount]) => (
           <View key={category} style={styles.expenseItem}>
             <Text style={styles.bullet}>•</Text>
             <Text style={styles.expenseText}>
-              {category} kategorisine {amount.toFixed(2)} TL harcadınız.
+              You spent {amount.toFixed(2)} TL on {category} category.
             </Text>
           </View>
         ))
       ) : (
         <Text style={styles.noDataText}>
-          {period} için harcama bulunamadı.
+          No expenses found for {period}.
         </Text>
       )}
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

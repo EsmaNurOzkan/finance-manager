@@ -22,13 +22,13 @@ const UpdateBudget: React.FC<UpdateBudgetProps> = ({ userId, budgetId, onSuccess
 
   const handleUpdateBudget = async () => {
     if (!startDate || !endDate || !amount) {
-      setErrorMessage('Lütfen tüm alanları doldurun.');
+      setErrorMessage('Please fill in all fields.');
       setSuccessMessage(null);
       return;
     }
 
     if (!isValidDate(startDate) || !isValidDate(endDate)) {
-      setErrorMessage('Lütfen tarihleri YYYY-AA-GG formatında girin.');
+      setErrorMessage('Please enter dates in YYYY-MM-DD format.');
       setSuccessMessage(null);
       return;
     }
@@ -43,10 +43,10 @@ const UpdateBudget: React.FC<UpdateBudgetProps> = ({ userId, budgetId, onSuccess
         endDate,
         amount: Number(amount),
       });
-      setSuccessMessage('Bütçe başarıyla güncellendi!');
+      setSuccessMessage('Budget updated successfully!');
       onSuccess?.(amount);
     } catch (error: any) {
-      const errorResponse = error.response?.data?.message || 'Bütçe güncellenirken bir hata oluştu.';
+      const errorResponse = error.response?.data?.message || 'An error occurred while updating the budget.';
       setErrorMessage(errorResponse);
     } finally {
       setLoading(false);
@@ -55,7 +55,7 @@ const UpdateBudget: React.FC<UpdateBudgetProps> = ({ userId, budgetId, onSuccess
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Başlangıç Tarihi (YYYY-AA-GG)</Text>
+      <Text style={styles.label}>Start Date (YYYY-MM-DD)</Text>
       <TextInput
         style={styles.input}
         placeholder="2025-06-17"
@@ -65,7 +65,7 @@ const UpdateBudget: React.FC<UpdateBudgetProps> = ({ userId, budgetId, onSuccess
         autoCapitalize="none"
       />
 
-      <Text style={styles.label}>Bitiş Tarihi (YYYY-AA-GG)</Text>
+      <Text style={styles.label}>End Date (YYYY-MM-DD)</Text>
       <TextInput
         style={styles.input}
         placeholder="2025-06-30"
@@ -77,13 +77,13 @@ const UpdateBudget: React.FC<UpdateBudgetProps> = ({ userId, budgetId, onSuccess
 
       <TextInput
         style={styles.input}
-        placeholder="Bütçe Tutarı"
+        placeholder="Budget Amount"
         value={amount}
         onChangeText={setAmount}
         keyboardType="numeric"
       />
 
-      <Button title="Bütçeyi Güncelle" onPress={handleUpdateBudget} disabled={loading} />
+      <Button title="Update Budget" onPress={handleUpdateBudget} disabled={loading} />
 
       {loading && <ActivityIndicator size="small" color="#0000ff" style={styles.loader} />}
       {successMessage && <Text style={styles.successText}>{successMessage}</Text>}
@@ -91,6 +91,7 @@ const UpdateBudget: React.FC<UpdateBudgetProps> = ({ userId, budgetId, onSuccess
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

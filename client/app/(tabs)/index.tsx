@@ -26,7 +26,7 @@ export default function HomePage() {
         const userId = await SecureStore.getItemAsync('userId');
         if (!userId) return;
   
-        const response = await axios.get( `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/reminders/get/${userId}`);
+        const response = await axios.get(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/reminders/get/${userId}`);
         const reminders = response.data.reminders || [];
   
         const now = new Date();
@@ -40,7 +40,7 @@ export default function HomePage() {
   
         setHasUpcomingReminder(upcoming);
       } catch (error) {
-        console.error("Hatırlatıcılar alınırken hata oluştu:", error);
+        console.error("Error fetching reminders:", error);
       }
     };
   
@@ -54,7 +54,7 @@ export default function HomePage() {
       setIsAuthenticated(false); 
       router.push('/auth/login');
     } catch (error) {
-      console.error("Çıkış işlemi sırasında bir hata oluştu:", error);
+      console.error("An error occurred during logout:", error);
     }
   };
 
@@ -67,12 +67,11 @@ export default function HomePage() {
       }, 2500);
     }
   };
-  
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.appTitle}>Finans Takip</Text>
+        <Text style={styles.appTitle}>Finance Tracker</Text>
         <View style={styles.iconContainer}>
           <TouchableOpacity onPress={handleNotificationPress} style={styles.notificationWrapper}>
             <MaterialIcons name="notifications" size={28} color="black" />
@@ -88,23 +87,24 @@ export default function HomePage() {
 
       {showReminderMessage && (
         <View style={styles.reminderMessage}>
-          <Text>Yaklaşan/tarihi geçen anımsatıcınız var.</Text>
+          <Text>You have an upcoming or past due reminder.</Text>
         </View>
       )}
 
       <View style={styles.main}>
-        <Text style={styles.title}>Hoşgeldin!</Text>
-        <Text style={styles.subtitle}>Bütçeni yönetmeye başla.</Text>
+        <Text style={styles.title}>Welcome!</Text>
+        <Text style={styles.subtitle}>Start managing your budget.</Text>
         
         {!isAuthenticated && ( 
           <TouchableOpacity style={styles.button} onPress={() => router.push('/auth/login')}>
-            <Text style={styles.buttonText}>Giriş Yap</Text>
+            <Text style={styles.buttonText}>Log In</Text>
           </TouchableOpacity>
         )}
       </View>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

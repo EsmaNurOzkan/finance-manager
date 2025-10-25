@@ -32,13 +32,12 @@ const Overview: React.FC = () => {
   const { expenseAdded, setExpenseAdded } = useContext(ExpenseContext)!;
   const [budget, setBudget] = useState<string>('');
   const [originalBudget, setOriginalBudget] = useState<number>(0);
-  const [placeholder, setPlaceholder] = useState<string>('Aylık bütçenizi girin');
+  const [placeholder, setPlaceholder] = useState<string>('Enter your monthly budget');
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [isUpdateMode, setIsUpdateMode] = useState<boolean>(false);
   const [budgetId, setBudgetId] = useState<string | null>(null);
-  const [selectedFilter, setSelectedFilter] = useState<string>('Aylık');
+  const [selectedFilter, setSelectedFilter] = useState<string>('Monthly');
   const [userId, setUserId] = useState<string | null>(null);
-
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -47,7 +46,7 @@ const Overview: React.FC = () => {
         if (id) {
           setUserId(id);
         } else {
-          alert('Kullanıcı ID bulunamadı.');
+          alert('User ID not found.');
         }
       } catch (error) {
         console.error('User ID fetch error:', error);
@@ -59,93 +58,89 @@ const Overview: React.FC = () => {
 
   useEffect(() => {
     if (!userId) {
-      console.log('Kullanıcı ID mevcut değil, işlem iptal edildi.');
+      console.log('User ID not available, operation cancelled.');
       return;
     }
 
-    
     const fetchBudgets = async () => {
       try {
         const response = await axios.get(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/budgets/get/${userId}`);
-  
+
         if (response.status === 200 && response.data.budgets.length > 0) {
-          
           const lastBudget: Budget = response.data.budgets[response.data.budgets.length - 1];
-  
+
           const currentDate = new Date();
-  
+
           if (new Date(lastBudget.endDate) >= currentDate) {
             setBudget(`${lastBudget.amount} ₺`);
             setOriginalBudget(lastBudget.amount);
             setBudgetId(lastBudget._id);
-  
+
             calculateRemainingBudget(lastBudget);
           } else {
             setBudget('');
-            setPlaceholder('Aylık bütçenizi girin');
+            setPlaceholder('Enter your monthly budget');
           }
         } else {
           setBudget('');
-          setPlaceholder('Aylık bütçenizi girin');
+          setPlaceholder('Enter your monthly budget');
         }
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
-          console.error('Axios Hatası:', error.response?.data || error.message);
-          alert('Sunucudan veri alınırken bir hata oluştu: ' + error.message);
+          console.error('Axios Error:', error.response?.data || error.message);
+          alert('An error occurred while fetching data from the server: ' + error.message);
         } else if (error instanceof Error) {
-          console.error('Genel hata:', error.message);
-          alert('Beklenmeyen bir hata oluştu: ' + error.message);
+          console.error('General error:', error.message);
+          alert('An unexpected error occurred: ' + error.message);
         } else {
-          console.error('Bilinmeyen hata:', error);
-          alert('Beklenmeyen bir hata oluştu.');
+          console.error('Unknown error:', error);
+          alert('An unexpected error occurred.');
         }
       }
     };
-  
+
     const calculateRemainingBudget = async (lastBudget: Budget) => {
       try {
         const expenseResponse = await axios.get(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/expenses/get/${userId}`);
-  
+
         if (expenseResponse.status === 200) {
           const expenses = expenseResponse.data;
-  
+
           const startDate = new Date(lastBudget.startDate);
           const endDate = new Date(lastBudget.endDate);
-  
+
           const filteredExpenses = expenses.filter((expense: any) => {
             const expenseDate = new Date(expense.date);
             return expenseDate >= startDate && expenseDate <= endDate;
           });
-  
+
           const totalExpenses = filteredExpenses.reduce((sum: number, expense: any) => sum + expense.amount, 0);
-  
+
           const remainingBudget = lastBudget.amount - totalExpenses;
-  
+
           setBudget(`${remainingBudget} ₺`);
         }
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
-          console.error('Axios Hatası:', error.response?.data || error.message);
-          alert('Harcama verileri alınırken bir hata oluştu: ' + error.message);
+          console.error('Axios Error:', error.response?.data || error.message);
+          alert('An error occurred while fetching expense data: ' + error.message);
         } else if (error instanceof Error) {
-          console.error('Genel hata:', error.message);
-          alert('Beklenmeyen bir hata oluştu: ' + error.message);
+          console.error('General error:', error.message);
+          alert('An unexpected error occurred: ' + error.message);
         } else {
-          console.error('Bilinmeyen hata:', error);
-          alert('Bilinmeyen bir hata oluştu.');
+          console.error('Unknown error:', error);
+          alert('An unexpected error occurred.');
         }
       }
     };
-  
+
     fetchBudgets();
   }, [userId, expenseAdded]);
-  
 
   const handleBudgetClick = () => {
     setIsUpdateMode(!!budget);
     setModalVisible(true);
   };
-  
 
   const handleModalClose = () => {
     setModalVisible(false);
@@ -160,22 +155,21 @@ const Overview: React.FC = () => {
     handleModalClose();
   };
 
-  const filters = ['Günlük', 'Haftalık', 'Aylık'];
-  
+  const filters = ['Daily', 'Weekly', 'Monthly'];
+
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}
-    >
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-      <View style={styles.budgetContainer}>
-        <Text style={styles.label}>BÜTÇE</Text>
-        <TextInput
-          style={styles.input}
-          placeholder={placeholder}
-          value={budget}
-          editable={true} 
-          onFocus={handleBudgetClick} 
-        />
-      </View>
+        <View style={styles.budgetContainer}>
+          <Text style={styles.label}>BUDGET</Text>
+          <TextInput
+            style={styles.input}
+            placeholder={placeholder}
+            value={budget}
+            editable={true} 
+            onFocus={handleBudgetClick} 
+          />
+        </View>
 
         <View style={styles.navbar}>
           {filters.map((filter) => (
@@ -198,22 +192,25 @@ const Overview: React.FC = () => {
             </TouchableOpacity>
           ))}
         </View>
+
         <View style={styles.chartContainer}>
-          <PieChartGraph period={selectedFilter} userId = {userId} />
-          <Reporting period={selectedFilter} userId = {userId}/>
+          <PieChartGraph period={selectedFilter} userId={userId} />
+          <Reporting period={selectedFilter} userId={userId} />
         </View>
+
         <Modal visible={modalVisible} animationType="slide" onRequestClose={handleModalClose}>
           {isUpdateMode ? (
             <UpdateBudget userId={userId || ''} budgetId={budgetId!} onSuccess={handleSuccess} />
           ) : (
             <AddBudget userId={userId || ''} onSuccess={handleSuccess} />
           )}
-          <Button title="Kapat" onPress={handleModalClose} />
+          <Button title="Close" onPress={handleModalClose} />
         </Modal>
       </View>
     </ScrollView>
   );
 };
+
 
 const styles = StyleSheet.create({
   scrollContainer: {

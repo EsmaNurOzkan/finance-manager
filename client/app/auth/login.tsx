@@ -17,7 +17,7 @@ export default function LoginScreen() {
   const router = useRouter();
 
   const onLogin: SubmitHandler<FormData> = async (data) => {
-    const trimmedEmail = data.email.trim(); 
+    const trimmedEmail = data.email.trim();
     const trimmedPassword = data.password.trim();
 
     try {
@@ -32,13 +32,13 @@ export default function LoginScreen() {
 
             setTimeout(async () => {
                 await SecureStore.deleteItemAsync('token');
-                console.log("Token süresi doldu, otomatik olarak silindi.");
-            }, 43200000); 
+                console.log("Token expired and automatically deleted.");
+            }, 43200000); // 12 hours
 
             const savedToken = await SecureStore.getItemAsync('token');
             const savedUserId = await SecureStore.getItemAsync('userId');
 
-            alert('Giriş başarılı!');
+            alert('Login successful!');
             router.push('/(tabs)');
         } else {
             alert('Login failed: Token or userId missing.');
@@ -63,13 +63,13 @@ export default function LoginScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Hoş Geldiniz</Text>
+      <Text style={styles.title}>Welcome</Text>
 
       <Controller
         control={control}
         name="email"
         rules={{
-          required: 'Email gerekli!',
+          required: 'Email is required!',
           pattern: /^[^@]+@[^@]+\.[^@]+$/,
         }}
         render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
@@ -95,12 +95,12 @@ export default function LoginScreen() {
       <Controller
         control={control}
         name="password"
-        rules={{ required: 'Parola gerekli!', minLength: 8 }}
+        rules={{ required: 'Password is required!', minLength: 8 }}
         render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
           <>
             <TextInput
               style={[styles.input, error && styles.inputError]}
-              placeholder="Parola"
+              placeholder="Password"
               placeholderTextColor="#888"
               onBlur={onBlur}
               onChangeText={(text) => {
@@ -116,21 +116,22 @@ export default function LoginScreen() {
       />
 
       <TouchableOpacity style={styles.button} onPress={handleSubmit(onLogin)}>
-        <Text style={styles.buttonText}>Giriş Yap</Text>
+        <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
 
       <View style={styles.footer}>
         <TouchableOpacity onPress={() => router.push('/auth/reset-password')}>
-          <Text style={styles.linkText}>Şifremi Unuttum?</Text>
+          <Text style={styles.linkText}>Forgot Password?</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push('/auth/register')}>
-          <Text style={styles.linkText}>Kayıt Ol</Text>
+          <Text style={styles.linkText}>Register</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

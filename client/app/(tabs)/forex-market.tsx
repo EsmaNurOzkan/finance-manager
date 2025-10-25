@@ -39,7 +39,7 @@ const ForexMarket: React.FC = () => {
 
   return (
     <>
-      <Text style={styles.title}>Döviz Kurları</Text>
+      <Text style={styles.title}>Exchange Rates</Text>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
           {loading ? (

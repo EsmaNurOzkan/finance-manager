@@ -16,135 +16,138 @@ const ResetPassword: React.FC = () => {
   const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
   const handleSendResetCode = async () => {
-    setLoading(true);
-    const trimmedEmail = email.trim();  
-    if (!trimmedEmail) {
-      setMessage('Lütfen geçerli bir email adresi girin!');
-      setLoading(false);
-      return;
-    }
+  setLoading(true);
+  const trimmedEmail = email.trim();  
+  if (!trimmedEmail) {
+    setMessage('Please enter a valid email address!');
+    setLoading(false);
+    return;
+  }
 
-    try {
-      await axios.post(`${backendUrl}/api/auth/sendresetlink`, { email: trimmedEmail });
-      setMessage('Mail adresinize sıfırlama kodu gönderildi.');
-      setStep(2);
-    } catch (error) {
-      setMessage('Bir hata oluştu. Lütfen tekrar deneyin.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    await axios.post(`${backendUrl}/api/auth/sendresetlink`, { email: trimmedEmail });
+    setMessage('A reset code has been sent to your email.');
+    setStep(2);
+  } catch (error) {
+    setMessage('An error occurred. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const handleVerifyCode = async () => {
-    setLoading(true);
-    const trimmedResetCode = resetCode.trim();  
-    try {
-      const response = await axios.post(`${backendUrl}/api/auth/verifycode`, { email, resetCode: trimmedResetCode });
-      if (response.data.success) {
-        setMessage('Kod doğrulandı! Şifrenizi sıfırlayabilirsiniz.');
-        setStep(3);
-      } else {
-        setMessage('Geçersiz kod, lütfen tekrar deneyin!');
-      }
-    } catch (error) {
-      setMessage('Bir hata oluştu. Lütfen tekrar deneyin.');
-    } finally {
-      setLoading(false);
+const handleVerifyCode = async () => {
+  setLoading(true);
+  const trimmedResetCode = resetCode.trim();  
+  try {
+    const response = await axios.post(`${backendUrl}/api/auth/verifycode`, { email, resetCode: trimmedResetCode });
+    if (response.data.success) {
+      setMessage('Code verified! You can now reset your password.');
+      setStep(3);
+    } else {
+      setMessage('Invalid code, please try again!');
     }
-  };
+  } catch (error) {
+    setMessage('An error occurred. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const handleResetPassword = async () => {
-    setLoading(true);
-    const trimmedNewPassword = newPassword.trim(); 
-    const trimmedConfirmPassword = confirmPassword.trim();  
+const handleResetPassword = async () => {
+  setLoading(true);
+  const trimmedNewPassword = newPassword.trim(); 
+  const trimmedConfirmPassword = confirmPassword.trim();  
 
-    if (trimmedNewPassword.length < 8) {
-      setMessage('Parola en az 8 karakterden oluşmalı!');
-      setLoading(false);
-      return;
-    }
+  if (trimmedNewPassword.length < 8) {
+    setMessage('Password must be at least 8 characters!');
+    setLoading(false);
+    return;
+  }
 
-    if (trimmedNewPassword !== trimmedConfirmPassword) {
-      setMessage('Şifreler uyuşmuyor!');
-      setLoading(false);
-      return;
-    }
+  if (trimmedNewPassword !== trimmedConfirmPassword) {
+    setMessage('Passwords do not match!');
+    setLoading(false);
+    return;
+  }
 
-    try {
-      await axios.post(`${backendUrl}/api/auth/resetpassword`, { email, resetCode, newPassword: trimmedNewPassword });
-      setMessage('Parolanız başarıyla sıfırlandı!');
-      setTimeout(() => router.push('/auth/login'), 2000);
-    } catch (error) {
-      setMessage('Bir hata oluştu. Lütfen tekrar deneyin.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    await axios.post(`${backendUrl}/api/auth/resetpassword`, { email, resetCode, newPassword: trimmedNewPassword });
+    setMessage('Your password has been successfully reset!');
+    setTimeout(() => router.push('/auth/login'), 2000);
+  } catch (error) {
+    setMessage('An error occurred. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
-    <View style={styles.container}>
-      {step === 1 && (
-        <>
-          <Text style={styles.label}>Email adresinizi girin:</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#999"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-          />
-          <TouchableOpacity style={styles.button} onPress={handleSendResetCode}>
-            <Text style={styles.buttonText}>Sıfırlama kodu gönder</Text>
-          </TouchableOpacity>
-        </>
-      )}
+  <View style={styles.container}>
+    {step === 1 && (
+      <>
+        <Text style={styles.label}>Enter your email address:</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          placeholderTextColor="#999"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+        />
+        <TouchableOpacity style={styles.button} onPress={handleSendResetCode}>
+          <Text style={styles.buttonText}>Send reset code</Text>
+        </TouchableOpacity>
+      </>
+    )}
 
-      {step === 2 && (
-        <>
-          <Text style={styles.label}>Email adresinize gelen sıfırlama kodunu girin:</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Sıfırlama kodu"
-            placeholderTextColor="#999"
-            value={resetCode}
-            onChangeText={setResetCode}
-          />
-          <TouchableOpacity style={styles.button} onPress={handleVerifyCode}>
-            <Text style={styles.buttonText}>Kodu doğrula</Text>
-          </TouchableOpacity>
-        </>
-      )}
+    {step === 2 && (
+      <>
+        <Text style={styles.label}>Enter the reset code sent to your email:</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Reset code"
+          placeholderTextColor="#999"
+          value={resetCode}
+          onChangeText={setResetCode}
+        />
+        <TouchableOpacity style={styles.button} onPress={handleVerifyCode}>
+          <Text style={styles.buttonText}>Verify code</Text>
+        </TouchableOpacity>
+      </>
+    )}
 
-      {step === 3 && (
-        <>
-          <Text style={styles.label}>Yeni parolanızı girin:</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Yeni parola"
-            placeholderTextColor="#999"
-            secureTextEntry
-            value={newPassword}
-            onChangeText={setNewPassword}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Parolayı onaylayın"
-            placeholderTextColor="#999"
-            secureTextEntry
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-          />
-          <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
-            <Text style={styles.buttonText}>Parolayı sıfırla</Text>
-          </TouchableOpacity>
-        </>
-      )}
+    {step === 3 && (
+      <>
+        <Text style={styles.label}>Enter your new password:</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="New password"
+          placeholderTextColor="#999"
+          secureTextEntry
+          value={newPassword}
+          onChangeText={setNewPassword}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Confirm password"
+          placeholderTextColor="#999"
+          secureTextEntry
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+        />
+        <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
+          <Text style={styles.buttonText}>Reset password</Text>
+        </TouchableOpacity>
+      </>
+    )}
 
-      {loading && <ActivityIndicator color="#6200EE" style={styles.loading} />}
-      {message && <Text style={styles.message}>{message}</Text>}
-    </View>
-  );
+    {loading && <ActivityIndicator color="#6200EE" style={styles.loading} />}
+    {message && <Text style={styles.message}>{message}</Text>}
+  </View>
+);
+
+
 };
 
 const styles = StyleSheet.create({

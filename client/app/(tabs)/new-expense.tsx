@@ -26,13 +26,13 @@ export default function NewExpense({ navigation }: any) {
 
       const userId = await SecureStore.getItemAsync("userId");
       if (!userId) {
-        setErrorMessage("Kullanıcı kimliği bulunamadı!");
+        setErrorMessage("User ID not found!");
         setLoading(false);
         return;
       }
 
       if (!amount || !category) {
-        setErrorMessage("Miktar ve kategori boş olamaz!");
+        setErrorMessage("Amount and category cannot be empty!");
         setLoading(false);
         return;
       }
@@ -50,7 +50,7 @@ export default function NewExpense({ navigation }: any) {
 
       if (response.status === 201) {
         setErrorMessage("");
-        alert("Harcama başarıyla eklendi!");
+        alert("Expense added successfully!");
         setAmount("");
         setCategory("");
         setDate(new Date());
@@ -60,25 +60,25 @@ export default function NewExpense({ navigation }: any) {
       setLoading(false);
     } catch (error) {
       const errorDetail = axios.isAxiosError(error)
-        ? error.response?.data?.error || "Harcama eklenemedi!"
-        : "Bir şeyler ters gitti!";
+        ? error.response?.data?.error || "Failed to add expense!"
+        : "Something went wrong!";
       setErrorMessage(errorDetail);
-      console.error("Hata Detayı:", error);
+      console.error("Error Detail:", error);
       setLoading(false);
     }
   };
 
   const openDatePrompt = () => {
     Alert.prompt?.(
-      "Tarih Seç",
-      "Lütfen tarihi gg.aa.yyyy formatında girin:",
+      "Select Date",
+      "Please enter the date in dd.mm.yyyy format:",
       [
         {
-          text: "İptal",
+          text: "Cancel",
           style: "cancel",
         },
         {
-          text: "Tamam",
+          text: "OK",
           onPress: (input) => {
             const parts = input?.split(".");
             if (parts?.length === 3) {
@@ -89,10 +89,10 @@ export default function NewExpense({ navigation }: any) {
               if (!isNaN(newDate.getTime())) {
                 setDate(newDate);
               } else {
-                alert("Geçerli bir tarih girin.");
+                alert("Enter a valid date.");
               }
             } else {
-              alert("Tarihi gg.aa.yyyy formatında girin.");
+              alert("Enter the date in dd.mm.yyyy format.");
             }
           },
         },
@@ -104,11 +104,11 @@ export default function NewExpense({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Yeni Harcama Ekle</Text>
+      <Text style={styles.title}>Add New Expense</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="Miktar"
+        placeholder="Amount"
         placeholderTextColor="#555"
         keyboardType="numeric"
         value={amount}
@@ -116,7 +116,7 @@ export default function NewExpense({ navigation }: any) {
       />
       <TextInput
         style={styles.input}
-        placeholder="Kategori"
+        placeholder="Category"
         placeholderTextColor="#555"
         value={category}
         onChangeText={setCategory}
@@ -129,11 +129,11 @@ export default function NewExpense({ navigation }: any) {
       {loading ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#0000ff" />
-          <Text style={styles.loadingText}>Harcama ekleniyor...</Text>
+          <Text style={styles.loadingText}>Adding expense...</Text>
         </View>
       ) : (
         <Pressable style={styles.addButton} onPress={handleAddExpense}>
-          <Text style={styles.addButtonText}>Harcama Ekle</Text>
+          <Text style={styles.addButtonText}>Add Expense</Text>
         </Pressable>
       )}
 
@@ -145,6 +145,7 @@ export default function NewExpense({ navigation }: any) {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

@@ -39,14 +39,14 @@ const FinancialNotes = () => {
         if (response.status === 200) {
           setNotes(response.data.notes);
         } else {
-          setError('Notları getirirken hata oluştu..');
+          setError('Failed to load the notes..');
         }
       } else {
-        setError('Kulanıcı bilgisi bulunamadı..');
+        setError("User not found.");
       }
     } catch (err) {
       console.error('Error:', err);
-      setError('Sunucuya bağlanırken hata oluştu');
+      setError('Error occurred while connecting to the server');
     } finally {
       setLoading(false);
     }
@@ -58,7 +58,7 @@ const FinancialNotes = () => {
 
   const handleAddNote = async () => {
     if (!newNote.trim()) {
-      Alert.alert('Hata', 'Not içeriği boş olamaz.');
+    Alert.alert('Error', 'Note content cannot be empty.');
       return;
     }
     setIsAddingNote(true);
@@ -72,98 +72,99 @@ const FinancialNotes = () => {
         );
         if (response.status === 201) {
           setNewNote('');
-          setSuccessMessage('Not başarıyla eklendi!');
+          setSuccessMessage('Note added successfully!');
           fetchNotes();
           setTimeout(() => {
             setSuccessMessage(null);
             setAddModalVisible(false);
           }, 1000); 
         } else {
-          Alert.alert('Hata', 'Not eklenirken bir hata oluştu.');
+        Alert.alert('Error', 'An error occurred while adding the note.');
         }
       } else {
-        Alert.alert('Hata', 'Kullanıcı bilgisi bulunamadı.');
+        Alert.alert('Error', 'User not found.');
       }
     } catch (err) {
       console.error('Error:', err);
-      Alert.alert('Hata', 'Sunucuya bağlanırken hata oluştu.');
+      Alert.alert('Error', 'Error occurred while connecting to the server.');
     } finally {
       setIsAddingNote(false);
     }
   };
 
   const handleUpdateNote = async () => {
-    if (!updatedContent.trim()) {
-      Alert.alert('Hata', 'Güncellenmiş not boş olamaz.');
-      return;
-    }
-    try {
-      const userId = await SecureStore.getItemAsync('userId');
-      if (userId && editNoteId) {
-        const response = await axios.patch(
-          `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/notes/update/${userId}/${editNoteId}`,
-          { content: updatedContent },
-          { headers: { 'Content-Type': 'application/json' } }
-        );
-        if (response.status === 200) {
-          setSuccessMessage('Not başarıyla güncellendi!');
-          fetchNotes();
-          setTimeout(() => {
-            setSuccessMessage(null);
-            setEditModalVisible(false);
-          }, 1000); 
-        } else {
-          Alert.alert('Hata', 'Not güncelleme sırasında hata oluştu.');
-        }
+  if (!updatedContent.trim()) {
+    Alert.alert('Error', 'Updated note cannot be empty.');
+    return;
+  }
+  try {
+    const userId = await SecureStore.getItemAsync('userId');
+    if (userId && editNoteId) {
+      const response = await axios.patch(
+        `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/notes/update/${userId}/${editNoteId}`,
+        { content: updatedContent },
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      if (response.status === 200) {
+        setSuccessMessage('Note updated successfully!');
+        fetchNotes();
+        setTimeout(() => {
+          setSuccessMessage(null);
+          setEditModalVisible(false);
+        }, 1000); 
+      } else {
+        Alert.alert('Error', 'An error occurred while updating the note.');
       }
-    } catch (err) {
-      console.error('Update Note Error:', err);
-      Alert.alert('Hata', 'Sunucuya bağlanırken hata oluştu');
     }
-  };
+  } catch (err) {
+    console.error('Update Note Error:', err);
+    Alert.alert('Error', 'An error occurred while connecting to the server.');
+  }
+};
 
   const handleDeleteNote = (noteId: string) => {
-    Alert.alert(
-      'Onay',
-      'Bu notu silmek istediğinden emin misin?',
-      [
-        {
-          text: 'Hayır',
-          onPress: () => console.log('Deletion canceled'),
-          style: 'cancel',
-        },
-        {
-          text: 'Evet',
-          onPress: async () => {
-            try {
-              const userId = await SecureStore.getItemAsync('userId');
-              if (userId) {
-                const response = await axios.delete(
-                  `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/notes/delete/${userId}/${noteId}`
-                );
-                if (response.status === 200) {
-                  fetchNotes();
-                  Alert.alert('Başarı', 'Not başarıyla silindi!');
-                } else {
-                  Alert.alert('Hata', 'Notu silerken hata oluştu');
-                }
+  Alert.alert(
+    'Confirmation',
+    'Are you sure you want to delete this note?',
+    [
+      {
+        text: 'No',
+        onPress: () => console.log('Deletion canceled'),
+        style: 'cancel',
+      },
+      {
+        text: 'Yes',
+        onPress: async () => {
+          try {
+            const userId = await SecureStore.getItemAsync('userId');
+            if (userId) {
+              const response = await axios.delete(
+                `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/notes/delete/${userId}/${noteId}`
+              );
+              if (response.status === 200) {
+                fetchNotes();
+                Alert.alert('Success', 'Note deleted successfully!');
+              } else {
+                Alert.alert('Error', 'An error occurred while deleting the note');
               }
-            } catch (err) {
-              console.error('Delete Note Error:', err);
-              Alert.alert('Hata', 'Sunucuya bağlanırken hata oluştu.');
             }
-          },
+          } catch (err) {
+            console.error('Delete Note Error:', err);
+            Alert.alert('Error', 'An error occurred while connecting to the server.');
+          }
         },
-      ],
-      { cancelable: false }
-    );
-  };
+      },
+    ],
+    { cancelable: false }
+  );
+};
+
 
   if (loading) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#1E90FF" />
-        <Text>Yükleniyor...</Text>
+        <Text>Loading...</Text>
       </View>
     );
   }
@@ -178,7 +179,7 @@ const FinancialNotes = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Finansal Notlarım</Text>
+      <Text style={styles.title}>Financial Notes</Text>
 
       <View style={styles.addIconWrapper}>
         <TouchableOpacity
@@ -222,25 +223,25 @@ const FinancialNotes = () => {
         visible={addModalVisible}
         onRequestClose={() => setAddModalVisible(false)}
       >
-        <View style={styles.modalContainer}>
-          <Text 
-            style={styles.modalTitle}>
-            Yeni not ekle
-            </Text>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Yeni not gir"
-            value={newNote}
-            onChangeText={setNewNote}
-          />
-          <TouchableOpacity style={styles.button} onPress={handleAddNote}>
-            <Text style={styles.buttonText}>Kaydet</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => setAddModalVisible(false)}>
-            <Text style={styles.buttonText}>İptal</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+      <View style={styles.modalContainer}>
+        <Text style={styles.modalTitle}>
+          Add New Note
+        </Text>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Enter new note"
+          value={newNote}
+          onChangeText={setNewNote}
+        />
+        <TouchableOpacity style={styles.button} onPress={handleAddNote}>
+          <Text style={styles.buttonText}>Save</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => setAddModalVisible(false)}>
+          <Text style={styles.buttonText}>Cancel</Text>
+        </TouchableOpacity>
+      </View>
+</Modal>
+
 
       <Modal
         animationType="slide"
@@ -248,25 +249,25 @@ const FinancialNotes = () => {
         visible={editModalVisible}
         onRequestClose={() => setEditModalVisible(false)}
       >
-        <View style={styles.modalContainer}>
-          <Text 
-            style={styles.modalTitle}>
-            Notu güncelle
-            </Text>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Notu güncelle"
-            value={updatedContent}
-            onChangeText={setUpdatedContent}
-          />
-          <TouchableOpacity style={styles.button} onPress={handleUpdateNote}>
-            <Text style={styles.buttonText}>Güncelle</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => setEditModalVisible(false)}>
-            <Text style={styles.buttonText}>İptal</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+      <View style={styles.modalContainer}>
+        <Text style={styles.modalTitle}>
+          Update Note
+        </Text>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Update note"
+          value={updatedContent}
+          onChangeText={setUpdatedContent}
+        />
+        <TouchableOpacity style={styles.button} onPress={handleUpdateNote}>
+          <Text style={styles.buttonText}>Update</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => setEditModalVisible(false)}>
+          <Text style={styles.buttonText}>Cancel</Text>
+        </TouchableOpacity>
+      </View>
+</Modal>
+
     </View>
   );
 };

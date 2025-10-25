@@ -24,17 +24,17 @@ const Register = () => {
   const handleSendCode = async () => {
     const trimmedEmail = email.trim();
     if (!trimmedEmail.includes('@')) {
-      setError('Geçerli bir e-posta adresi giriniz.');
+      setError('Please enter a valid email address.');
       return;
     }
     setLoading(true);
     try {
       await axios.post(`${backendUrl}/api/auth/send-code`, { email: trimmedEmail });
       setShowModal(true);
-      setMessage('E-posta adresinize doğrulama kodu gönderildi.');
+      setMessage('A verification code has been sent to your email.');
       setCodeSent(true);
     } catch (error) {
-      setError('Kod gönderilirken hata oluştu.');
+      setError('Error occurred while sending the code.');
     } finally {
       setLoading(false);
     }
@@ -46,12 +46,12 @@ const Register = () => {
     const trimmedVerificationCode = verificationCode.trim();
 
     if (trimmedPassword.length < 8) {
-      setError('Şifreniz en az 8 karakter olmalıdır.');
+      setError('Your password must be at least 8 characters.');
       return;
     }
 
     if (!codeSent) {
-      setError('Önce doğrulama kodu almanız gerekiyor.');
+      setError('You need to receive a verification code first.');
       return;
     }
 
@@ -64,14 +64,14 @@ const Register = () => {
         password: trimmedPassword, 
         code: trimmedVerificationCode,
       });
-      setMessage('Kayıt başarılı.');
+      setMessage('Registration successful.');
       setShowModal(false);
       setError('');
       setTimeout(() => {
         router.push('./login');
       }, 1500);
     } catch (error) {
-      setError('Kayıt sırasında hata oluştu. Lütfen tekrar deneyin.');
+      setError('An error occurred during registration. Please try again.');
     } finally {
       setIsProcessing(false); 
     }
@@ -80,18 +80,18 @@ const Register = () => {
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <ScrollView contentContainerStyle={styles.scrollView}>
-        <Text style={styles.header}>Kayıt Ol</Text>
+        <Text style={styles.header}>Register</Text>
 
         <TextInput 
           style={styles.input} 
-          placeholder="Kullanıcı Adı" 
+          placeholder="Username" 
           placeholderTextColor="#888"
           value={username} 
           onChangeText={setUsername} 
         />
         <TextInput 
           style={styles.input} 
-          placeholder="E-posta" 
+          placeholder="Email" 
           placeholderTextColor="#888"
           value={email} 
           onChangeText={setEmail} 
@@ -99,7 +99,7 @@ const Register = () => {
         />
         <TextInput 
           style={styles.input} 
-          placeholder="Şifre (En az 8 karakter)" 
+          placeholder="Password (Min 8 characters)" 
           placeholderTextColor="#888"
           secureTextEntry 
           value={password} 
@@ -110,10 +110,10 @@ const Register = () => {
           {loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color="#fff" />
-              <Text style={styles.loadingText}> Kod gönderiliyor...</Text>
+              <Text style={styles.loadingText}> Sending code...</Text>
             </View>
           ) : (
-            <Text style={styles.buttonText}>Kayıt Ol</Text>
+            <Text style={styles.buttonText}>Register</Text>
           )}
         </TouchableOpacity>
 
@@ -122,10 +122,10 @@ const Register = () => {
 
         <Modal animationType="slide" transparent visible={showModal} onRequestClose={() => setShowModal(false)}>
           <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>Doğrulama Kodu</Text>
+            <Text style={styles.modalTitle}>Verification Code</Text>
             <TextInput 
               style={styles.input} 
-              placeholder="Doğrulama kodu" 
+              placeholder="Verification code" 
               placeholderTextColor="#888"
               value={verificationCode} 
               onChangeText={setVerificationCode} 
@@ -135,14 +135,14 @@ const Register = () => {
               {isProcessing ? ( 
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="small" color="#fff" />
-                  <Text style={styles.loadingText}>Kontrol ediliyor, lütfen bekleyin...</Text>
+                  <Text style={styles.loadingText}>Checking, please wait...</Text>
                 </View>
               ) : (
-                <Text style={styles.buttonText}>Doğrula ve Kayıt Ol</Text>
+                <Text style={styles.buttonText}>Verify & Register</Text>
               )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.closeButton} onPress={() => setShowModal(false)}>
-              <Text style={styles.buttonText}>Kapat</Text>
+              <Text style={styles.buttonText}>Close</Text>
             </TouchableOpacity>
           </View>
         </Modal>
@@ -150,6 +150,7 @@ const Register = () => {
     </KeyboardAvoidingView>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

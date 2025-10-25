@@ -28,21 +28,21 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Anasayfa',
+          title: 'Home',
           tabBarIcon: ({ color }) => <Ionicons name="home" size={28} color={color} />, 
         }}
       />
       <Tabs.Screen
         name="new-expense"
         options={{
-          title: 'Yeni harcama',
+          title: 'New Expense',
           tabBarIcon: ({ color }) => <Ionicons name="card" size={28} color={color} />, 
         }}
       />
       <Tabs.Screen
         name="overview"
         options={{
-          title: 'Özet',
+          title: 'Overview',
           tabBarIcon: ({ color }) => <Ionicons name="grid-outline" size={28} color={color} />,
         }}
       />
@@ -50,14 +50,14 @@ export default function TabLayout() {
       <Tabs.Screen
         name="financial-notes"
         options={{
-          title: 'Finansal notlarım',
+          title: 'Financial Notes',
           tabBarIcon: ({ color }) => <MaterialIcons name="note" size={28} color={color} />,
         }}
       />
       <Tabs.Screen
         name="forex-market"
         options={{
-          title: 'Döviz',
+          title: 'Forex Market',
           tabBarIcon: ({ color }) => <FontAwesome name="line-chart" size={28} color={color} />,
         }}
       />
@@ -66,7 +66,7 @@ export default function TabLayout() {
       <Tabs.Screen
       name="reminders"
       options={{
-        title: 'Anımsatıcılar',
+        title: 'Reminder',
         tabBarIcon: ({ color }) => <Ionicons name="alarm-outline" size={28} color={color} />,
       }}
     />
