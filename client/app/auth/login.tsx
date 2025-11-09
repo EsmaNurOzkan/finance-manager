@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View, StyleSheet, ScrollView } from 'react-native';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
+
 import * as SecureStore from 'expo-secure-store'; 
 import axios from 'axios';
 import { useRouter } from 'expo-router';
+import { ActivityIndicator } from 'react-native';
 
 interface FormData {
   email: string;
@@ -15,6 +17,8 @@ export default function LoginScreen() {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const router = useRouter();
+  const [loading, setLoading] = useState<boolean>(false);
+  
 
   const onLogin: SubmitHandler<FormData> = async (data) => {
     const trimmedEmail = data.email.trim();
@@ -25,6 +29,8 @@ export default function LoginScreen() {
             email: trimmedEmail, 
             password: trimmedPassword 
         });
+        setLoading(true);
+
 
         if (response.data.token && response.data.user.id) {
             await SecureStore.setItemAsync('token', response.data.token);
@@ -33,7 +39,7 @@ export default function LoginScreen() {
             setTimeout(async () => {
                 await SecureStore.deleteItemAsync('token');
                 console.log("Token expired and automatically deleted.");
-            }, 43200000); // 12 hours
+            }, 43200000); 
 
             const savedToken = await SecureStore.getItemAsync('token');
             const savedUserId = await SecureStore.getItemAsync('userId');
@@ -57,6 +63,10 @@ export default function LoginScreen() {
             console.error('Unexpected error:', error.message);
             alert('Login failed: An unexpected error occurred.');
         }
+    }
+    finally{
+      setLoading(false);
+
     }
 };
 
@@ -115,9 +125,13 @@ export default function LoginScreen() {
         )}
       />
 
+        
       <TouchableOpacity style={styles.button} onPress={handleSubmit(onLogin)}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
+      {loading 
+        ? <ActivityIndicator size="small" color="#fff" /> 
+        : <Text style={styles.buttonText}>Login</Text>
+      }
+    </TouchableOpacity>
 
       <View style={styles.footer}>
         <TouchableOpacity onPress={() => router.push('/auth/reset-password')}>

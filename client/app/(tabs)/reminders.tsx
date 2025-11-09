@@ -1,9 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, FlatList, ActivityIndicator, TouchableOpacity, Alert, Modal, TextInput, Button } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
+  Alert,
+  Modal,
+  TextInput,
+  Button,
+} from 'react-native';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 interface Reminder {
   _id: string;
@@ -25,7 +37,10 @@ export default function Reminders() {
 
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
-  const [newDueDate, setNewDueDate] = useState(''); // string format
+  const [newDueDate, setNewDueDate] = useState<string>('');
+
+  const [isDatePickerVisible, setDatePickerVisible] = useState(false);
+  const [isEditDatePickerVisible, setEditDatePickerVisible] = useState(false);
 
   const SERVER_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
   const navigation = useNavigation();
@@ -53,32 +68,59 @@ export default function Reminders() {
   }, []);
 
   const handleDeleteReminder = (reminderId: string) => {
-    Alert.alert(
-      "Delete Confirmation",
-      "Are you sure you want to delete this reminder?",
-      [
-        { text: "No", style: "cancel" },
-        {
-          text: "Yes", onPress: async () => {
-            try {
-              setIsProcessing(true);
-              const userId = await SecureStore.getItemAsync('userId');
-              if (!userId) return;
+    Alert.alert('Delete Confirmation', 'Are you sure you want to delete this reminder?', [
+      { text: 'No', style: 'cancel' },
+      {
+        text: 'Yes',
+        onPress: async () => {
+          try {
+            setIsProcessing(true);
+            const userId = await SecureStore.getItemAsync('userId');
+            if (!userId) return;
 
-              await axios.delete(`${SERVER_URL}/api/reminders/delete/${userId}/${reminderId}`);
-              setReminders((prevReminders) => prevReminders.filter(r => r._id !== reminderId));
+            await axios.delete(`${SERVER_URL}/api/reminders/delete/${userId}/${reminderId}`);
+            setReminders((prevReminders) => prevReminders.filter((r) => r._id !== reminderId));
 
-              setSuccessMessage('Reminder deleted successfully!');
-              setTimeout(() => setSuccessMessage(null), 2000); 
-            } catch (err) {
-              setError('An error occurred while deleting the reminder.');
-            } finally {
-              setIsProcessing(false); 
-            }
+            setSuccessMessage('Reminder deleted successfully!');
+            setTimeout(() => setSuccessMessage(null), 2000);
+          } catch (err) {
+            setError('An error occurred while deleting the reminder.');
+          } finally {
+            setIsProcessing(false);
           }
-        }
-      ]
-    );
+        },
+      },
+    ]);
+  };
+
+  const handleAddReminder = async () => {
+    if (isProcessing) return;
+
+    try {
+      setIsProcessing(true);
+      const userId = await SecureStore.getItemAsync('userId');
+      if (!userId) return;
+
+      const newReminder = {
+        title: newTitle,
+        description: newDescription,
+        dueDate: newDueDate,
+      };
+
+      const response = await axios.post(`${SERVER_URL}/api/reminders/add/${userId}`, newReminder);
+      setReminders((prevReminders) => [...prevReminders, response.data]);
+      setAddModalVisible(false);
+      setNewTitle('');
+      setNewDescription('');
+      setNewDueDate('');
+
+      setSuccessMessage('Reminder added successfully!');
+      setTimeout(() => setSuccessMessage(null), 2000);
+    } catch (err) {
+      setError('An error occurred while adding the new reminder.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleUpdateReminder = async () => {
@@ -107,48 +149,23 @@ export default function Reminders() {
       );
 
       setEditModalVisible(false);
-
       setSuccessMessage('Reminder updated successfully!');
       setTimeout(() => setSuccessMessage(null), 2000);
     } catch (err) {
       setError('An error occurred while updating the reminder.');
     } finally {
-      setIsProcessing(false); 
+      setIsProcessing(false);
     }
   };
 
-  const handleAddReminder = async () => {
-    if (isProcessing) return;  
-    
-    try {
-      setIsProcessing(true); 
-      const userId = await SecureStore.getItemAsync('userId');
-      if (!userId) return;
-  
-      const newReminder = {
-        title: newTitle,
-        description: newDescription,
-        dueDate: newDueDate,
-      };
-  
-      const response = await axios.post(
-        `${SERVER_URL}/api/reminders/add/${userId}`,
-        newReminder
-      );
-  
-      setReminders((prevReminders) => [...prevReminders, response.data]);
-      setAddModalVisible(false); 
-      setNewTitle('');
-      setNewDescription('');
-      setNewDueDate('');
+  const handleConfirmAddDate = (date: Date) => {
+    setNewDueDate(date.toISOString());
+    setDatePickerVisible(false);
+  };
 
-      setSuccessMessage('Reminder added successfully!');
-      setTimeout(() => setSuccessMessage(null), 2000); 
-    } catch (err) {
-      setError('An error occurred while adding the new reminder.');
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleConfirmEditDate = (date: Date) => {
+    setNewDueDate(date.toISOString());
+    setEditDatePickerVisible(false);
   };
 
   if (loading) {
@@ -202,7 +219,7 @@ export default function Reminders() {
           const today = new Date();
           const dueDate = new Date(item.dueDate);
           const timeDiff = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-          const isUrgent = timeDiff < 3; 
+          const isUrgent = timeDiff < 3;
 
           return (
             <View style={styles.reminderItem}>
@@ -237,30 +254,46 @@ export default function Reminders() {
         }}
       />
 
-      <Modal visible={addModalVisible} animationType="slide" transparent={true} onRequestClose={() => setAddModalVisible(false)}>
+      <Modal
+        visible={addModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setAddModalVisible(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add New Reminder</Text>
+
             <TextInput
               style={styles.input}
               placeholder="Title"
-              placeholderTextColor="#888"
               value={newTitle}
               onChangeText={setNewTitle}
             />
             <TextInput
               style={styles.input}
               placeholder="Description"
-              placeholderTextColor="#888"
               value={newDescription}
               onChangeText={setNewDescription}
             />
-            <TextInput
-              style={styles.input}
-              placeholder="Due Date (YYYY-MM-DD)"
-              placeholderTextColor="#888"
-              value={newDueDate}
-              onChangeText={setNewDueDate}
+
+            <TouchableOpacity
+              style={styles.dateButton}
+              onPress={() => setDatePickerVisible(true)}
+            >
+              <Text style={styles.dateButtonText}>
+                {newDueDate
+                  ? new Date(newDueDate).toLocaleDateString()
+                  : 'Select Due Date'}
+              </Text>
+            </TouchableOpacity>
+
+            <DateTimePickerModal
+              isVisible={isDatePickerVisible}
+              mode="date"
+              display="spinner"
+              onConfirm={handleConfirmAddDate}
+              onCancel={() => setDatePickerVisible(false)}
             />
 
             <View style={styles.modalButtons}>
@@ -271,29 +304,45 @@ export default function Reminders() {
         </View>
       </Modal>
 
-      <Modal visible={editModalVisible} animationType="slide" transparent={true} onRequestClose={() => setEditModalVisible(false)}>
+      <Modal
+        visible={editModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setEditModalVisible(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Reminder</Text>
             <TextInput
               style={styles.input}
               placeholder="Title"
-              placeholderTextColor="#888"
               value={newTitle}
               onChangeText={setNewTitle}
             />
             <TextInput
               style={styles.input}
               placeholder="Description"
-              placeholderTextColor="#888"
               value={newDescription}
               onChangeText={setNewDescription}
             />
-            <TextInput
-              style={styles.input}
-              placeholder="Due Date (YYYY-MM-DD)"
-              placeholderTextColor="#888"
-              value={newDueDate}
-              onChangeText={setNewDueDate}
+
+            <TouchableOpacity
+              style={styles.dateButton}
+              onPress={() => setEditDatePickerVisible(true)}
+            >
+              <Text style={styles.dateButtonText}>
+                {newDueDate
+                  ? new Date(newDueDate).toLocaleDateString()
+                  : 'Select Due Date'}
+              </Text>
+            </TouchableOpacity>
+
+            <DateTimePickerModal
+              isVisible={isEditDatePickerVisible}
+              mode="date"
+              display="spinner"
+              onConfirm={handleConfirmEditDate}
+              onCancel={() => setEditDatePickerVisible(false)}
             />
 
             <View style={styles.modalButtons}>
@@ -307,26 +356,21 @@ export default function Reminders() {
   );
 }
 
-
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 40,
     paddingHorizontal: 20,
-    backgroundColor: 'white',  
+    backgroundColor: 'white',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
-    color: 'black',  
+    color: 'black',
   },
-  addButton: {
-    alignSelf: 'flex-end',
-    marginBottom: 20,
-  },
+  addButton: { alignSelf: 'flex-end', marginBottom: 20 },
   reminderItem: {
     padding: 10,
     backgroundColor: '#f9f9f9',
@@ -336,51 +380,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  reminderDetails: {
-    flex: 1,
-  },
-  reminderTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  reminderDescription: {
-    fontSize: 14,
-    color: '#555',
-  },
-  reminderDueDate: {
-    fontSize: 12,
-    color: '#888',
-  },
-  iconsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  icon: {
-    marginLeft: 10,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    color: 'red',
-  },
+  reminderDetails: { flex: 1 },
+  reminderTitle: { fontSize: 18, fontWeight: 'bold' },
+  reminderDescription: { fontSize: 14, color: '#555' },
+  reminderDueDate: { fontSize: 12, color: '#888' },
+  iconsContainer: { flexDirection: 'row', alignItems: 'center' },
+  icon: { marginLeft: 10 },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  errorText: { color: 'red' },
   successMessageContainer: {
     backgroundColor: 'green',
     padding: 10,
     borderRadius: 5,
     marginBottom: 10,
   },
-  successMessage: {
-    color: 'white',
-    textAlign: 'center',
-  },
+  successMessage: { color: 'white', textAlign: 'center' },
   loadingOverlay: {
     position: 'absolute',
     top: 0,
@@ -402,9 +417,8 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     width: '80%',
-    justifyContent:"center",
-    alignItems:"center",
-    textAlign:"center"
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   input: {
     borderBottomWidth: 1,
@@ -412,14 +426,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingHorizontal: 10,
     paddingVertical: 5,
+    width: '100%',
   },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  modalButtons: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
+  modalTitle: { margin: 5, fontWeight: 'bold', fontSize: 18 },
+  dateButton: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#007bff',
+    borderRadius: 8,
+    marginBottom: 15,
+    alignItems: 'center',
+    width: '100%',
   },
-  modalTitle: {
-    margin: 5,
-    fontWeight: "bold",
-    fontSize: 18,
-  }
+  dateButtonText: { color: '#007bff', fontWeight: 'bold' },
 });

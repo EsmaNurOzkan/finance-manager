@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { View, Button, TextInput, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Button, TextInput, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface UpdateBudgetProps {
   userId: string;
@@ -9,26 +10,18 @@ interface UpdateBudgetProps {
 }
 
 const UpdateBudget: React.FC<UpdateBudgetProps> = ({ userId, budgetId, onSuccess }) => {
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [amount, setAmount] = useState<string>('');
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const isValidDate = (dateStr: string) => {
-    return /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
-  };
-
   const handleUpdateBudget = async () => {
     if (!startDate || !endDate || !amount) {
       setErrorMessage('Please fill in all fields.');
-      setSuccessMessage(null);
-      return;
-    }
-
-    if (!isValidDate(startDate) || !isValidDate(endDate)) {
-      setErrorMessage('Please enter dates in YYYY-MM-DD format.');
       setSuccessMessage(null);
       return;
     }
@@ -39,12 +32,15 @@ const UpdateBudget: React.FC<UpdateBudgetProps> = ({ userId, budgetId, onSuccess
 
     try {
       await axios.patch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/budgets/update/${userId}/${budgetId}`, {
-        startDate,
-        endDate,
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
         amount: Number(amount),
       });
       setSuccessMessage('Budget updated successfully!');
       onSuccess?.(amount);
+      setStartDate(null);
+      setEndDate(null);
+      setAmount('');
     } catch (error: any) {
       const errorResponse = error.response?.data?.message || 'An error occurred while updating the budget.';
       setErrorMessage(errorResponse);
@@ -55,25 +51,41 @@ const UpdateBudget: React.FC<UpdateBudgetProps> = ({ userId, budgetId, onSuccess
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Start Date (YYYY-MM-DD)</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="2025-06-17"
-        value={startDate}
-        onChangeText={setStartDate}
-        keyboardType="numbers-and-punctuation"
-        autoCapitalize="none"
-      />
+      <Text style={styles.label}>Start Date</Text>
+      <TouchableOpacity onPress={() => setShowStartPicker(true)} style={styles.dateButton}>
+        <Text style={styles.dateText}>
+          {startDate ? startDate.toISOString().split('T')[0] : 'Select Start Date'}
+        </Text>
+      </TouchableOpacity>
+      {showStartPicker && (
+        <DateTimePicker
+          value={startDate || new Date()}
+          mode="date"
+          display="spinner"
+          onChange={(event, selectedDate) => {
+            setShowStartPicker(false);
+            if (selectedDate) setStartDate(selectedDate);
+          }}
+        />
+      )}
 
-      <Text style={styles.label}>End Date (YYYY-MM-DD)</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="2025-06-30"
-        value={endDate}
-        onChangeText={setEndDate}
-        keyboardType="numbers-and-punctuation"
-        autoCapitalize="none"
-      />
+      <Text style={styles.label}>End Date</Text>
+      <TouchableOpacity onPress={() => setShowEndPicker(true)} style={styles.dateButton}>
+        <Text style={styles.dateText}>
+          {endDate ? endDate.toISOString().split('T')[0] : 'Select End Date'}
+        </Text>
+      </TouchableOpacity>
+      {showEndPicker && (
+        <DateTimePicker
+          value={endDate || new Date()}
+          mode="date"
+          display="spinner"
+          onChange={(event, selectedDate) => {
+            setShowEndPicker(false);
+            if (selectedDate) setEndDate(selectedDate);
+          }}
+        />
+      )}
 
       <TextInput
         style={styles.input}
@@ -92,7 +104,6 @@ const UpdateBudget: React.FC<UpdateBudgetProps> = ({ userId, budgetId, onSuccess
   );
 };
 
-
 const styles = StyleSheet.create({
   container: {
     padding: 20,
@@ -105,6 +116,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginVertical: 5,
     color: 'white',
+  },
+  dateButton: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  dateText: {
+    fontSize: 16,
+    color: '#333',
   },
   input: {
     borderColor: '#ccc',

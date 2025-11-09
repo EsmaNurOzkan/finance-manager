@@ -151,6 +151,9 @@ const Overview: React.FC = () => {
     if (!isNaN(parsedBudget)) {
       setBudget(`${parsedBudget} ₺`);
       setOriginalBudget(parsedBudget);
+
+      SecureStore.setItemAsync("currentBudget", parsedBudget.toString());
+
     }
     handleModalClose();
   };

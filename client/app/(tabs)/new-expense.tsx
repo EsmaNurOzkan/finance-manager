@@ -1,16 +1,16 @@
-import React, { useState, useContext } from "react";
+import { ExpenseContext } from "@/contexts/ExpenseContext";
+import axios from "axios";
+import * as SecureStore from "expo-secure-store";
+import React, { useContext, useState } from "react";
 import {
+  ActivityIndicator,
   StyleSheet,
   Text,
   TextInput,
   View,
   Pressable,
-  ActivityIndicator,
-  Alert,
 } from "react-native";
-import * as SecureStore from "expo-secure-store";
-import axios from "axios";
-import { ExpenseContext } from "@/contexts/ExpenseContext";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 export default function NewExpense({ navigation }: any) {
   const { setExpenseAdded } = useContext(ExpenseContext)!;
@@ -19,6 +19,7 @@ export default function NewExpense({ navigation }: any) {
   const [date, setDate] = useState(new Date());
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
   const handleAddExpense = async () => {
     try {
@@ -27,6 +28,13 @@ export default function NewExpense({ navigation }: any) {
       const userId = await SecureStore.getItemAsync("userId");
       if (!userId) {
         setErrorMessage("User ID not found!");
+        setLoading(false);
+        return;
+      }
+
+      const currentBudget = await SecureStore.getItemAsync("currentBudget");
+      if (!currentBudget || parseFloat(currentBudget) <= 0) {
+        setErrorMessage("Please enter your budget before adding any expenses!");
         setLoading(false);
         return;
       }
@@ -54,7 +62,7 @@ export default function NewExpense({ navigation }: any) {
         setAmount("");
         setCategory("");
         setDate(new Date());
-        setExpenseAdded(prev => !prev);
+        setExpenseAdded((prev) => !prev);
       }
 
       setLoading(false);
@@ -68,38 +76,9 @@ export default function NewExpense({ navigation }: any) {
     }
   };
 
-  const openDatePrompt = () => {
-    Alert.prompt?.(
-      "Select Date",
-      "Please enter the date in dd.mm.yyyy format:",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "OK",
-          onPress: (input) => {
-            const parts = input?.split(".");
-            if (parts?.length === 3) {
-              const day = parseInt(parts[0]);
-              const month = parseInt(parts[1]) - 1;
-              const year = parseInt(parts[2]);
-              const newDate = new Date(year, month, day);
-              if (!isNaN(newDate.getTime())) {
-                setDate(newDate);
-              } else {
-                alert("Enter a valid date.");
-              }
-            } else {
-              alert("Enter the date in dd.mm.yyyy format.");
-            }
-          },
-        },
-      ],
-      "plain-text",
-      date.toLocaleDateString("tr-TR")
-    );
+  const handleConfirm = (selectedDate: Date) => {
+    setDate(selectedDate);
+    setDatePickerVisibility(false);
   };
 
   return (
@@ -114,6 +93,7 @@ export default function NewExpense({ navigation }: any) {
         value={amount}
         onChangeText={setAmount}
       />
+
       <TextInput
         style={styles.input}
         placeholder="Category"
@@ -122,9 +102,22 @@ export default function NewExpense({ navigation }: any) {
         onChangeText={setCategory}
       />
 
-      <Pressable style={styles.dateButton} onPress={openDatePrompt}>
-        <Text style={styles.dateButtonText}>📅 {date.toLocaleDateString("tr-TR")}</Text>
+      <Pressable
+        style={styles.dateButton}
+        onPress={() => setDatePickerVisibility(true)}
+      >
+        <Text style={styles.dateButtonText}>
+          📅 {date.toLocaleDateString("tr-TR")}
+        </Text>
       </Pressable>
+
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        onConfirm={handleConfirm}
+        onCancel={() => setDatePickerVisibility(false)}
+        date={date}
+      />
 
       {loading ? (
         <View style={styles.loaderContainer}>
@@ -145,7 +138,6 @@ export default function NewExpense({ navigation }: any) {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
