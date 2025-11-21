@@ -187,7 +187,7 @@ export default function Reminders() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Reminders</Text>
+      <Text style={styles.title}>Reminder</Text>
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => {

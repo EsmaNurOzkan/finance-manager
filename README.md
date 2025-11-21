@@ -1,3 +1,13 @@
+<p float="left">
+  <img src=".assets/screenshots/IMG_4112.PNG" alt="Image 1" width="250" />
+  <img src=".assets/screenshots/IMG_4113.PNG" alt="Image 2" width="250" />
+  <img src=".assets/screenshots/IMG_4114.PNG" alt="Image 3" width="250" />
+  <img src=".assets/screenshots/IMG_4115.PNG" alt="Image 4" width="250" />
+  <img src=".assets/screenshots/IMG_4116.PNG" alt="Image 5" width="250" />
+  <img src=".assets/screenshots/IMG_4117.PNG" alt="Image 6" width="250" />
+</p>
+
+
 # Finance Manager Project
 
 This project consists of two main parts:
@@ -70,4 +80,8 @@ In the output, you'll find options to open the app in a:
 
 ---
 
-Feel free to contribute or raise issues if you encounter any problems or have suggestions!
+## Contact
+
+For any questions or inquiries, please contact:
+
+- **Email:** esmanursolmaz@outlook.com
