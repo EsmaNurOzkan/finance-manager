@@ -1,10 +1,10 @@
 <p float="left">
-  <img src=".assets/screenshots/IMG_4112.PNG" alt="Image 1" width="250" />
-  <img src=".assets/screenshots/IMG_4113.PNG" alt="Image 2" width="250" />
-  <img src=".assets/screenshots/IMG_4114.PNG" alt="Image 3" width="250" />
-  <img src=".assets/screenshots/IMG_4115.PNG" alt="Image 4" width="250" />
-  <img src=".assets/screenshots/IMG_4116.PNG" alt="Image 5" width="250" />
-  <img src=".assets/screenshots/IMG_4117.PNG" alt="Image 6" width="250" />
+  <img src="./client/assets/screenshots/IMG_4112.PNG" alt="Image 1" width="250" />
+  <img src="./client/assets/screenshots/IMG_4113.PNG" alt="Image 2" width="250" />
+  <img src="./client/assets/screenshots/IMG_4114.PNG" alt="Image 3" width="250" />
+  <img src="./client/assets/screenshots/IMG_4115.PNG" alt="Image 4" width="250" />
+  <img src="./client/assets/screenshots/IMG_4116.PNG" alt="Image 5" width="250" />
+  <img src="./client/assets/screenshots/IMG_4117.PNG" alt="Image 6" width="250" />
 </p>
 
 
